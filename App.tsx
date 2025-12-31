@@ -59,7 +59,7 @@ function App() {
           throw error;
         }
 
-        if (data && data.length > 0) {
+        if (data) {
           const formattedData: Product[] = data.map((item: any) => ({
             id: item.id,
             reference: item.reference,
@@ -67,14 +67,13 @@ function App() {
             price: Number(item.price),
             fit: item.fit,
             wash: item.wash,
-            imageFront: item.image_front || item.imageFront,
-            imageBack: item.image_back || item.imageBack,
-            isNew: item.is_new || item.isNew,
-            isOutlet: item.is_outlet || item.isOutlet,
+            imageFront: item.image_front,
+            imageBack: item.image_back,
+            isNew: item.is_new,
+            isOutlet: item.is_outlet,
             description: item.description,
             material: item.material,
             grade: item.grade,
-            // Fallback inference for legacy data
             gender: item.gender || (item.fit === 'Masculino' ? 'masculino' : 'feminino'),
             category: item.category || (() => {
               const fit = item.fit;
@@ -85,25 +84,15 @@ function App() {
               if (['Skinny', 'Mom', 'Wide Leg'].includes(fit)) return 'calca';
               if (title.includes('bermuda')) return 'bermuda';
               if (title.includes('camiseta')) return 'camiseta';
-              return 'calca'; // Default fallback
+              return 'calca';
             })()
           }));
           setProducts(formattedData);
-        } else {
-          console.warn("Supabase retornou lista vazia. Carregando dados de exemplo.");
-          setProducts(MOCK_PRODUCTS);
         }
       } catch (err: any) {
-        if (err.message && (
-          err.message.includes('Could not find the table') ||
-          err.message.includes('schema cache') ||
-          err.message.includes('relation')
-        )) {
-          console.warn("Tabela 'products' não detectada no Supabase. O app está rodando em modo de demonstração com dados locais.");
-        } else {
-          console.error("Erro na conexão com Supabase (Fallback ativo):", err.message || err);
-        }
-        setProducts(MOCK_PRODUCTS);
+        console.error("Erro na conexão com Supabase:", err.message || err);
+        // Only use mock data if specifically desired for dev, but let's disable for now
+        // setProducts(MOCK_PRODUCTS);
       } finally {
         setLoading(false);
       }

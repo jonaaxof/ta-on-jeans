@@ -27,7 +27,37 @@ const ProductManagement = () => {
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
-            if (data) setProducts(data);
+            if (data) {
+                const formattedData: Product[] = data.map((item: any) => ({
+                    id: item.id,
+                    reference: item.reference,
+                    title: item.title,
+                    price: Number(item.price),
+                    fit: item.fit,
+                    wash: item.wash,
+                    imageFront: item.image_front,
+                    imageBack: item.image_back,
+                    isNew: item.is_new,
+                    isOutlet: item.is_outlet,
+                    description: item.description,
+                    material: item.material,
+                    grade: item.grade,
+                    gender: item.gender,
+                    // Inference
+                    category: item.category || (() => {
+                        const fit = item.fit;
+                        const title = item.title?.toLowerCase() || '';
+                        if (fit === 'Shorts') return 'shorts';
+                        if (fit === 'Saia') return 'saia';
+                        if (fit === 'Jaqueta') return 'jaqueta';
+                        if (['Skinny', 'Mom', 'Wide Leg'].includes(fit)) return 'calca';
+                        if (title.includes('bermuda')) return 'bermuda';
+                        if (title.includes('camiseta')) return 'camiseta';
+                        return 'calca';
+                    })()
+                }));
+                setProducts(formattedData);
+            }
         } catch (error) {
             console.error('Erro ao buscar produtos:', error);
         } finally {
@@ -37,10 +67,34 @@ const ProductManagement = () => {
 
     const cleanProductData = (data: Partial<Product>) => {
         // Ensure numeric values are numbers
-        const clean = { ...data };
+        const clean: any = { ...data };
         if (clean.price) clean.price = Number(clean.price);
-        // Ensure required fields for DB
-        return clean;
+
+        // Map camelCase to snake_case for DB
+        const dbPayload: any = {
+            reference: clean.reference,
+            title: clean.title,
+            price: clean.price,
+            fit: clean.fit,
+            wash: clean.wash,
+            description: clean.description,
+            material: clean.material,
+            grade: clean.grade,
+            gender: clean.gender,
+            image_front: clean.imageFront,
+            image_back: clean.imageBack,
+            is_new: clean.isNew,
+            is_outlet: clean.isOutlet,
+        };
+
+        // Remove undefined fields and the 'category' which is calculated on the fly
+        Object.keys(dbPayload).forEach(key => {
+            if (dbPayload[key] === undefined) {
+                delete dbPayload[key];
+            }
+        });
+
+        return dbPayload;
     };
 
     const handleSave = async (e: React.FormEvent) => {
