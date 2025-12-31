@@ -35,10 +35,10 @@ const ProductManagement = () => {
                     price: Number(item.price),
                     fit: item.fit,
                     wash: item.wash,
-                    imageFront: item.image_front,
-                    imageBack: item.image_back,
-                    isNew: item.is_new,
-                    isOutlet: item.is_outlet,
+                    imageFront: item.image_front || item.imageFront,
+                    imageBack: item.image_back || item.imageBack,
+                    isNew: item.is_new || item.isNew,
+                    isOutlet: item.is_outlet || item.isOutlet,
                     description: item.description,
                     material: item.material,
                     grade: item.grade,
@@ -72,6 +72,7 @@ const ProductManagement = () => {
 
         // Map camelCase to snake_case for DB
         const dbPayload: any = {
+            id: clean.id || (isEditing ? undefined : crypto.randomUUID()),
             reference: clean.reference,
             title: clean.title,
             price: clean.price,
