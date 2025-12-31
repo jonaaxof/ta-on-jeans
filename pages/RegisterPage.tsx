@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft, Search } from 'lucide-react';
+import { validateCPF, validateCNPJ, fetchCNPJData } from '../utils/validators';
 
 const RegisterPage: React.FC = () => {
     const { user, signUp } = useAuth();
@@ -27,6 +28,7 @@ const RegisterPage: React.FC = () => {
     const [nomeFantasia, setNomeFantasia] = useState('');
     const [cnpj, setCnpj] = useState('');
     const [inscricaoEstadual, setInscricaoEstadual] = useState('');
+    const [cnpjLoading, setCnpjLoading] = useState(false);
 
     // Check if already logged in
     useEffect(() => {
@@ -35,12 +37,47 @@ const RegisterPage: React.FC = () => {
         }
     }, [user, navigate]);
 
+    // CNPJ Auto-lookup
+    useEffect(() => {
+        const lookupCNPJ = async () => {
+            const cleanCNPJ = cnpj.replace(/\D/g, '');
+            if (cleanCNPJ.length === 14 && validateCNPJ(cleanCNPJ)) {
+                setCnpjLoading(true);
+                const data = await fetchCNPJData(cleanCNPJ);
+                if (data && !data.error) {
+                    setRazaoSocial(data.razao_social);
+                    setNomeFantasia(data.nome_fantasia);
+                } else if (data?.error) {
+                    setMessage(data.error);
+                }
+                setCnpjLoading(false);
+            }
+        };
+
+        lookupCNPJ();
+    }, [cnpj]);
+
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         setMessage('');
 
         try {
+            // Validation
+            if (personType === 'PF') {
+                if (!validateCPF(cpf)) {
+                    setMessage('CPF inválido.');
+                    setLoading(false);
+                    return;
+                }
+            } else {
+                if (!validateCNPJ(cnpj)) {
+                    setMessage('CNPJ inválido.');
+                    setLoading(false);
+                    return;
+                }
+            }
+
             let fullName = '';
             let additionalData = {};
 
@@ -177,16 +214,23 @@ const RegisterPage: React.FC = () => {
                                     required
                                 />
                             </div>
-                            <div>
+                            <div className="relative">
                                 <label className="block text-gray-700 text-xs font-bold uppercase mb-2">CNPJ*</label>
-                                <input
-                                    type="text"
-                                    className="w-full bg-white border border-gray-300 rounded-sm p-3 focus:outline-none focus:border-black transition-colors"
-                                    placeholder="00.000.000/0000-00"
-                                    value={cnpj}
-                                    onChange={e => setCnpj(e.target.value)}
-                                    required
-                                />
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        className="w-full bg-white border border-gray-300 rounded-sm p-3 focus:outline-none focus:border-black transition-colors pr-10"
+                                        placeholder="00.000.000/0000-00"
+                                        value={cnpj}
+                                        onChange={e => setCnpj(e.target.value)}
+                                        required
+                                    />
+                                    {cnpjLoading && (
+                                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                            <Loader2 className="animate-spin text-gray-400" size={18} />
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                             <div>
                                 <label className="block text-gray-700 text-xs font-bold uppercase mb-2">Inscrição Estadual</label>
