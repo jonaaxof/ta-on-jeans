@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Package, Clock, Plus, ArrowRight, ArrowLeft, Trash2, X, AlertOctagon } from 'lucide-react';
+import { Package, Clock, Plus, ArrowRight, ArrowLeft, Trash2, X, AlertOctagon, User, Calendar } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
+import { useAuth } from '../../contexts/AuthContext';
 
 // Type definitions matching DB
 type Priority = 'low' | 'normal' | 'high';
@@ -13,6 +14,9 @@ interface ProductionOrder {
     stage: Stage;
     priority: Priority;
     start_date: string;
+    start_time: string;
+    deadline: string;
+    responsible_name: string;
     notes?: string;
 }
 
@@ -25,6 +29,7 @@ const STAGES: { id: Stage; label: string; color: string }[] = [
 ];
 
 const ProductionBoard: React.FC = () => {
+    const { user } = useAuth();
     const [orders, setOrders] = useState<ProductionOrder[]>([]);
     const [loading, setLoading] = useState(true);
     const [draggedOrderId, setDraggedOrderId] = useState<string | null>(null);
@@ -34,9 +39,18 @@ const ProductionBoard: React.FC = () => {
     const [newOrder, setNewOrder] = useState<Partial<ProductionOrder>>({
         priority: 'normal',
         stage: 'corte',
-        start_date: new Date().toISOString().split('T')[0]
+        start_date: new Date().toISOString().split('T')[0],
+        start_time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+        responsible_name: user?.name || ''
     });
     const [saving, setSaving] = useState(false);
+
+    // Update responsible name when user becomes available
+    useEffect(() => {
+        if (user?.name && !newOrder.responsible_name) {
+            setNewOrder(prev => ({ ...prev, responsible_name: user.name }));
+        }
+    }, [user]);
 
     useEffect(() => {
         fetchOrders();
@@ -119,7 +133,13 @@ const ProductionBoard: React.FC = () => {
 
             await fetchOrders();
             setIsModalOpen(false);
-            setNewOrder({ priority: 'normal', stage: 'corte', start_date: new Date().toISOString().split('T')[0] });
+            setNewOrder({
+                priority: 'normal',
+                stage: 'corte',
+                start_date: new Date().toISOString().split('T')[0],
+                start_time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+                responsible_name: user?.name || ''
+            });
         } catch (error: any) {
             alert(error.message);
         } finally {
@@ -189,14 +209,22 @@ const ProductionBoard: React.FC = () => {
 
                                             <h4 className="text-sm font-bold text-slate-800 mb-2 leading-tight">{batch.product_name}</h4>
 
-                                            <div className="flex items-center gap-4 text-xs text-slate-500 mb-4">
+                                            <div className="grid grid-cols-2 gap-y-2 text-[11px] text-slate-500 mb-4">
                                                 <div className="flex items-center gap-1">
-                                                    <Package size={14} />
+                                                    <Package size={12} className="text-slate-400" />
                                                     <span>{batch.quantity} un</span>
                                                 </div>
                                                 <div className="flex items-center gap-1">
-                                                    <Clock size={14} />
-                                                    <span>{batch.start_date.split('-').reverse().join('/')}</span>
+                                                    <User size={12} className="text-slate-400" />
+                                                    <span className="truncate" title={batch.responsible_name}>{batch.responsible_name || 'N/A'}</span>
+                                                </div>
+                                                <div className="flex items-center gap-1">
+                                                    <Clock size={12} className="text-slate-400" />
+                                                    <span>{batch.start_date.split('-').reverse().join('/')} {batch.start_time}</span>
+                                                </div>
+                                                <div className="flex items-center gap-1 text-red-500 font-medium">
+                                                    <Calendar size={12} />
+                                                    <span>Prazo: {batch.deadline ? batch.deadline.split('-').reverse().join('/') : 'N/A'}</span>
                                                 </div>
                                             </div>
 
@@ -284,6 +312,49 @@ const ProductionBoard: React.FC = () => {
                                         <option value="normal">Normal</option>
                                         <option value="high">Urgente</option>
                                     </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Responsável</label>
+                                <input
+                                    required
+                                    className="w-full p-2 border rounded"
+                                    placeholder="Nome do responsável"
+                                    value={newOrder.responsible_name || ''}
+                                    onChange={e => setNewOrder({ ...newOrder, responsible_name: e.target.value })}
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Início (Data/Hora)</label>
+                                    <div className="flex gap-1">
+                                        <input
+                                            type="date"
+                                            required
+                                            className="w-full p-2 border rounded text-xs"
+                                            value={newOrder.start_date || ''}
+                                            onChange={e => setNewOrder({ ...newOrder, start_date: e.target.value })}
+                                        />
+                                        <input
+                                            type="time"
+                                            required
+                                            className="w-24 p-2 border rounded text-xs"
+                                            value={newOrder.start_time || ''}
+                                            onChange={e => setNewOrder({ ...newOrder, start_time: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Prazo de Entrega</label>
+                                    <input
+                                        type="date"
+                                        required
+                                        className="w-full p-2 border rounded text-xs"
+                                        value={newOrder.deadline || ''}
+                                        onChange={e => setNewOrder({ ...newOrder, deadline: e.target.value })}
+                                    />
                                 </div>
                             </div>
 

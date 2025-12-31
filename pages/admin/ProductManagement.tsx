@@ -72,7 +72,7 @@ const ProductManagement = () => {
 
         // Map camelCase to snake_case for DB
         const dbPayload: any = {
-            id: clean.id || (isEditing ? undefined : crypto.randomUUID()),
+            id: clean.id || (isEditing ? undefined : (window.crypto?.randomUUID ? crypto.randomUUID() : `prod-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`)),
             reference: clean.reference,
             title: clean.title,
             price: clean.price,
@@ -95,6 +95,7 @@ const ProductManagement = () => {
             }
         });
 
+        console.log('Final DB Payload:', dbPayload);
         return dbPayload;
     };
 
