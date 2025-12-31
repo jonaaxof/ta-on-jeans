@@ -16,16 +16,16 @@ import {
 } from 'lucide-react';
 
 const AdminLayout: React.FC = () => {
-    const { user, userRole, logout } = useAuth();
+    const { user, userRole, loading, logout } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
 
     // Protect Route
     React.useEffect(() => {
-        if (userRole === 'customer') {
+        if (!loading && userRole === 'customer') {
             navigate('/');
         }
-    }, [userRole, navigate]);
+    }, [userRole, loading, navigate]);
 
     // Define Menu Items with Role Permissions
     const menuItems = [

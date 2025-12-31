@@ -43,6 +43,9 @@ const FinancialDashboard: React.FC = () => {
         e.preventDefault();
         setSaving(true);
         try {
+            if (!newTx.amount || isNaN(newTx.amount)) {
+                throw new Error('Por favor, insira um valor válido.');
+            }
             const { error } = await supabase.from('financial_transactions').insert([newTx]);
             if (error) throw error;
 
@@ -196,7 +199,10 @@ const FinancialDashboard: React.FC = () => {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Valor (R$)</label>
-                                    <input required type="number" step="0.01" className="w-full p-2 border rounded" value={newTx.amount || ''} onChange={e => setNewTx({ ...newTx, amount: parseFloat(e.target.value) })} />
+                                    <input required type="number" step="0.01" className="w-full p-2 border rounded" value={newTx.amount || ''} onChange={e => {
+                                        const val = e.target.value === '' ? undefined : parseFloat(e.target.value);
+                                        setNewTx({ ...newTx, amount: val });
+                                    }} />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Data</label>

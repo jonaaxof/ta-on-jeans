@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { Loader2, ArrowLeft } from 'lucide-react';
@@ -29,10 +29,11 @@ const RegisterPage: React.FC = () => {
     const [inscricaoEstadual, setInscricaoEstadual] = useState('');
 
     // Check if already logged in
-    if (user) {
-        navigate('/');
-        return null;
-    }
+    useEffect(() => {
+        if (user) {
+            navigate('/');
+        }
+    }, [user, navigate]);
 
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -96,8 +97,8 @@ const RegisterPage: React.FC = () => {
                         type="button"
                         onClick={() => setPersonType('PF')}
                         className={`px-6 py-3 rounded-full text-sm font-bold uppercase tracking-wider transition-all border ${personType === 'PF'
-                                ? 'bg-black text-white border-black'
-                                : 'bg-white text-gray-500 border-gray-200 hover:border-black'
+                            ? 'bg-black text-white border-black'
+                            : 'bg-white text-gray-500 border-gray-200 hover:border-black'
                             }`}
                     >
                         Pessoa Física
@@ -106,8 +107,8 @@ const RegisterPage: React.FC = () => {
                         type="button"
                         onClick={() => setPersonType('PJ')}
                         className={`px-6 py-3 rounded-full text-sm font-bold uppercase tracking-wider transition-all border ${personType === 'PJ'
-                                ? 'bg-black text-white border-black'
-                                : 'bg-white text-gray-500 border-gray-200 hover:border-black'
+                            ? 'bg-black text-white border-black'
+                            : 'bg-white text-gray-500 border-gray-200 hover:border-black'
                             }`}
                     >
                         Pessoa Jurídica

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { CheckCircle2, ArrowRight, Loader2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 
 const STATES = [
@@ -21,6 +22,7 @@ const ResalePage: React.FC = () => {
 
     const [loading, setLoading] = useState(false);
     const [submitted, setSubmitted] = useState(false);
+    const navigate = useNavigate();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -50,7 +52,7 @@ const ResalePage: React.FC = () => {
                     <h2 className="text-3xl font-display font-bold text-white uppercase italic">Cadastro Recebido!</h2>
                     <p className="text-gray-400">Excelente escolha. Nossa equipe de expansão entrará em contato com você via WhatsApp em breve para apresentar nossas condições exclusivas de atacado.</p>
                     <button
-                        onClick={() => window.location.href = '/'}
+                        onClick={() => navigate('/')}
                         className="w-full bg-[#B39359] text-white py-4 font-bold uppercase tracking-widest hover:bg-[#967B4A] transition-colors"
                     >
                         Voltar para a Loja
