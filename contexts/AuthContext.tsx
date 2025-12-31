@@ -65,7 +65,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
       setLoading(false);
-    });
+    }).catch(() => setLoading(false));
 
     const {
       data: { subscription },
