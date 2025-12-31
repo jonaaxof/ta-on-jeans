@@ -31,7 +31,11 @@ const LoginPage: React.FC = () => {
             if (error) throw error;
             // Native auth change listener will redirect
         } catch (err: any) {
-            setLoginMessage(err.message || 'Erro ao entrar.');
+            if (err.message === 'Failed to fetch') {
+                setLoginMessage('Erro de Conexão: Verifique se as chaves do Supabase estão configuradas na Vercel.');
+            } else {
+                setLoginMessage(err.message || 'Erro ao entrar.');
+            }
         } finally {
             setLoginLoading(false);
         }
@@ -104,7 +108,7 @@ const LoginPage: React.FC = () => {
                             </div>
 
                             {loginMessage && (
-                                <p className={`text-sm ${loginMessage.includes('Erro') ? 'text-red-500' : 'text-green-600'}`}>
+                                <p className={`text-sm text-center font-bold p-3 rounded bg-red-50 text-red-600`}>
                                     {loginMessage}
                                 </p>
                             )}
