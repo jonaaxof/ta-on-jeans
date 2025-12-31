@@ -141,7 +141,12 @@ const ProductionBoard: React.FC = () => {
                 responsible_name: user?.name || ''
             });
         } catch (error: any) {
-            alert(error.message);
+            console.error('Save error details:', error);
+            if (error.message?.includes('column') && error.message?.includes('not found')) {
+                alert(`Erro de Banco de Dados: As novas colunas (deadline, responsible_name, etc) ainda não existem na sua tabela. \n\nPor favor, execute o script SQL de migration fornecido.`);
+            } else {
+                alert(`Erro ao criar: ${error.message}`);
+            }
         } finally {
             setSaving(false);
         }

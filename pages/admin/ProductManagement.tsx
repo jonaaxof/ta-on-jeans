@@ -88,9 +88,9 @@ const ProductManagement = () => {
             is_outlet: clean.isOutlet,
         };
 
-        // Remove undefined fields and the 'category' which is calculated on the fly
+        // Remove undefined and null fields (the 'category' is calculated on the fly)
         Object.keys(dbPayload).forEach(key => {
-            if (dbPayload[key] === undefined) {
+            if (dbPayload[key] === undefined || dbPayload[key] === null) {
                 delete dbPayload[key];
             }
         });
